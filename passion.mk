@@ -49,3 +49,5 @@ PRODUCT_COPY_FILES += \
     device/htc/passion-common/mahimahi-keypad.kl:system/usr/keylayout/mahimahi-keypad.kl \
     device/htc/passion-common/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl \
     device/htc/passion-common/vold.fstab:system/etc/vold.fstab
+
+-include vendor/htc/passion-common/passion-vendor.mk
