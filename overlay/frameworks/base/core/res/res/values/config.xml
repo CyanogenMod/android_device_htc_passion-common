@@ -103,4 +103,28 @@
     <!-- Component name of the service providing geocoder API support. -->
     <string name="config_geocodeProvider">com.google.android.location.GeocodeProvider</string>
 
+
+    <!-- XXXXX NOTE THE FOLLOWING RESOURCES USE THE WRONG NAMING CONVENTION.
+         Please don't copy them, copy anything else. -->
+
+    <!-- This string array should be overridden by the device to present a list of network
+         attributes.  This is used by the connectivity manager to decide which networks can coexist
+         based on the hardware -->
+    <!-- An Array of "[Connection name],[ConnectivityManager connection type],
+         [associated radio-type],[priority]  -->
+    <string-array translatable="false" name="networkAttributes">
+        <item>"wifi,1,1,1"</item>
+        <item>"mobile,0,0,0"</item>
+        <item>"mobile_mms,2,0,2"</item>
+        <item>"mobile_supl,3,0,2"</item>
+        <item>"mobile_dun,4,0,4"</item>
+        <item>"mobile_hipri,5,0,3"</item>
+    </string-array>
+
+    <!-- List of regexpressions describing the interface (if any) that represent tetherable
+         USB interfaces.  If the device doesn't want to support tething over USB this should
+         be empty.  An example would be "usb.*" -->
+    <string-array translatable="false" name="config_tether_usb_regexs">
+        <item>"usb0"</item>
+    </string-array>
 </resources>
