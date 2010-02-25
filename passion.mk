@@ -15,11 +15,13 @@
 #
 
 # media profiles and capabilities spec
-$(call inherit-product, device/htc/passion-common/media_profiles.mk)
 $(call inherit-product, device/htc/passion-common/media_a1026.mk)
 
 # stuff common to all HTC phones
 $(call inherit-product, device/htc/common/common.mk)
+
+PRODUCT_PROPERTY_OVERRIDES +=
+    ro.media.dec.jpeg.memcap=20000000
 
 # WARNING: the most specific overlay goes first
 DEVICE_PACKAGE_OVERLAYS := device/htc/passion-common/overlay $(DEVICE_PACKAGE_OVERLAYS)
