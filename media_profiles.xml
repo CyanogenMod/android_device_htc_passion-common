@@ -81,7 +81,7 @@
 
         <EncoderProfile quality="high" fileFormat="mp4" duration="60">
             <Video codec="m4v"
-                   bitRate="2000000"
+                   bitRate="3000000"
                    width="720"
                    height="480"
                    frameRate="24" />
@@ -124,6 +124,12 @@
          In other words, the applications won't be able to use the codec
          or query the capabilities of the codec at all if it is disabled
     -->
+    <VideoEncoderCap name="h264" enabled="true"
+        minBitRate="64000" maxBitRate="3000000"
+        minFrameWidth="176" maxFrameWidth="800"
+        minFrameHeight="144" maxFrameHeight="480"
+        minFrameRate="1" maxFrameRate="24" />
+
     <VideoEncoderCap name="h263" enabled="true"
         minBitRate="64000" maxBitRate="1000000"
         minFrameWidth="176" maxFrameWidth="800"
