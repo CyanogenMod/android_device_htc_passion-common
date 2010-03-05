@@ -91,16 +91,4 @@
     <integer name="config_deskDockKeepsScreenOn">0</integer>
     <integer name="config_carDockKeepsScreenOn">0</integer>
 
-    <!-- Default color for notification LED is white -->
-    <color name="config_defaultNotificationColor">#ffffffff</color>
-
-    <!-- Default blink frequency for notification LED is 9 seconds. -->
-    <integer name="config_defaultNotificationLedOff">9000</integer>
-
-    <!-- Component name of the service providing network location support. -->
-    <string name="config_networkLocationProvider">com.google.android.location.NetworkLocationProvider</string>
-
-    <!-- Component name of the service providing geocoder API support. -->
-    <string name="config_geocodeProvider">com.google.android.location.GeocodeProvider</string>
-
 </resources>
