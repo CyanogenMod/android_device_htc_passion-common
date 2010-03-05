@@ -17,10 +17,12 @@
 # Product-specific compile-time definitions.
 #
 
-# WARNING: This line must come *before* including the proprietary
-# variant, so that it gets overwritten by the parent (which goes
+# WARNING: These lines must come *before* including the proprietary
+# variant, so they may be overwritten by the parent (which goes
 # against the traditional rules of inheritance).
 USE_CAMERA_STUB := true
+
+BOARD_GPS_LIBRARIES := libloc_api
 
 # inherit from the proprietary version
 -include vendor/htc/passion-common/BoardConfigCommonVendor.mk
