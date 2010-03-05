@@ -85,11 +85,8 @@
          specified -->
     <string name="default_wallpaper_component">com.android.wallpaper/.nexus.NexusWallpaper</string>
 
-    <!-- To prevent LCD fatigue we do not keep the screen on while docked.
-         Instead, we rely on the dock apps keeping the screen on when they are active.
-    -->
     <integer name="config_deskDockKeepsScreenOn">0</integer>
-    <integer name="config_carDockKeepsScreenOn">0</integer>
+    <integer name="config_carDockKeepsScreenOn">1</integer>
 
     <!-- Default color for notification LED is white -->
     <color name="config_defaultNotificationColor">#ffffffff</color>
