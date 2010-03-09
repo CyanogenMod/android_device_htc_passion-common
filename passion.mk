@@ -35,7 +35,8 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_PACKAGES := \
     sensors.mahimahi \
-    lights.mahimahi
+    lights.mahimahi \
+    librs_jni
 
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
