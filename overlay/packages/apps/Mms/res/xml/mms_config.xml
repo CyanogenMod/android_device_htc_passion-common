@@ -30,4 +30,10 @@
     <!-- Maximum width for an attached image -->
     <int name="maxImageWidth">2592</int>
 
+    <!-- User-Agent parameter used in MMS http request -->
+    <string name="userAgent">Passion</string>
+
+    <!-- UAProf URL -->
+    <string name="uaProfUrl">http://www.htcmms.com.tw/Android/Common/nexusone/ua-profile.xml</string>
+
 </mms_config>
