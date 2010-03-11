@@ -32,7 +32,7 @@ TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
 
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
-TARGET_ARCH_VARIANT := armv7-a
+TARGET_ARCH_VARIANT := armv7-a-neon
 
 TARGET_BOOTLOADER_BOARD_NAME := mahimahi
 
