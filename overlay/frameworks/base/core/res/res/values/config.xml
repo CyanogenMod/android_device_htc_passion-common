@@ -49,8 +49,8 @@
          than the size of the config_autoBrightnessLevels array.
     -->
     <integer-array name="config_autoBrightnessLcdBacklightValues">
-        <item>30</item>
-        <item>70</item>
+        <item>25</item>
+        <item>55</item>
         <item>70</item>
         <item>70</item>
         <item>250</item>
