@@ -357,6 +357,9 @@ static uint32_t enable_disable_akm(struct sensors_control_context_t *dev,
     LOGV("(after) akm sensors = %08x, real = %08x",
          sensors, now_active_akm_sensors);
 
+    if (!sensors)
+        close_akm(dev);
+
     return now_active_akm_sensors;
 }
 
@@ -625,7 +628,7 @@ static int data__data_open(struct sensors_data_context_t *dev, native_handle_t* 
     LOGV("data__data_open: compass fd = %d", handle->data[0]);
     LOGV("data__data_open: proximity fd = %d", handle->data[1]);
     LOGV("data__data_open: light fd = %d", handle->data[2]);
-    native_handle_close(handle);
+    // Framework will close the handle
     native_handle_delete(handle);
 
     dev->pendingSensors = 0;
