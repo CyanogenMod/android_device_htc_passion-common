@@ -95,6 +95,16 @@ struct sensors_data_context_t {
  * The SENSORS Module
  */
 
+/* the CM3602 is a binary proximity sensor that triggers around 9 cm on
+ * this hardware */
+#define PROXIMITY_THRESHOLD_CM  9.0f
+
+/*
+ * the AK8973 has a 8-bit ADC but the firmware seems to average 16 samples,
+ * or at least makes its calibration on 12-bits values. This increases the
+ * resolution by 4 bits.
+ */
+
 static const struct sensor_t sSensorList[] = {
         { "BMA150 3-axis Accelerometer",
                 "Bosh",
@@ -103,7 +113,7 @@ static const struct sensor_t sSensorList[] = {
         { "AK8973 3-axis Magnetic field sensor",
                 "Asahi Kasei",
                 1, SENSORS_HANDLE_BASE+ID_M,
-                SENSOR_TYPE_MAGNETIC_FIELD, 2000.0f, 1.0f, 6.8f, { } },
+                SENSOR_TYPE_MAGNETIC_FIELD, 2000.0f, 1.0f/16.0f, 6.8f, { } },
         { "AK8973 Orientation sensor",
                 "Asahi Kasei",
                 1, SENSORS_HANDLE_BASE+ID_O,
@@ -111,7 +121,9 @@ static const struct sensor_t sSensorList[] = {
         { "CM3602 Proximity sensor",
                 "Capella Microsystems",
                 1, SENSORS_HANDLE_BASE+ID_P,
-                SENSOR_TYPE_PROXIMITY, 2.0f, 2.0f, 0.5f, { } },
+                SENSOR_TYPE_PROXIMITY,
+                PROXIMITY_THRESHOLD_CM, PROXIMITY_THRESHOLD_CM,
+                0.5f, { } },
         { "CM3602 Light sensor",
                 "Capella Microsystems",
                 1, SENSORS_HANDLE_BASE+ID_L,
@@ -773,7 +785,8 @@ static uint32_t data__poll_process_cm_abs(struct sensors_data_context_t *dev,
              (int)event->time.tv_sec);
         if (event->code == EVENT_TYPE_PROXIMITY) {
             new_sensors |= SENSORS_CM_PROXIMITY;
-            dev->sensors[ID_P].distance = (float)event->value;
+            /* event->value seems to be 0 or 1, scale it to the threshold */
+            dev->sensors[ID_P].distance = event->value * PROXIMITY_THRESHOLD_CM;
         }
     }
     return new_sensors;
