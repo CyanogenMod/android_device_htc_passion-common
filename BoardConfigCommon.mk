@@ -72,3 +72,6 @@ TARGET_RECOVERY_UI_LIB := librecovery_ui_passion librecovery_ui_htc
 TARGET_RECOVERY_UPDATER_LIBS += librecovery_updater_htc
 
 TARGET_RELEASETOOLS_EXTENSIONS := device/htc/common
+
+# to enable the GPS HAL
+GPS_LOC_API_HARDWARE := mahimahi
