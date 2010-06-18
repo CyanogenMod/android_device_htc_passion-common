@@ -74,4 +74,6 @@ TARGET_RECOVERY_UPDATER_LIBS += librecovery_updater_htc
 TARGET_RELEASETOOLS_EXTENSIONS := device/htc/common
 
 # to enable the GPS HAL
-GPS_LOC_API_HARDWARE := mahimahi
+BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := mahimahi
+# AMSS version to use for GPS
+BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION := 3200
