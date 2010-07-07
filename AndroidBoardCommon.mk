@@ -21,5 +21,3 @@ $(call add-radio-file,recovery/images/bitmap_size.txt)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := mahimahi-keypad.kcm
 include $(BUILD_KEY_CHAR_MAP)
-
-ALL_PREBUILT += $(INSTALLED_KERNEL_TARGET)
