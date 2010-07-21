@@ -25,6 +25,8 @@
 
 /*****************************************************************************/
 
+struct sensors_event_t;
+
 class SensorBase {
 protected:
     const char* dev_name;
@@ -33,20 +35,24 @@ protected:
     int         data_fd;
 
     static int openInput(const char* inputName);
+    static int64_t getTimestamp();
+
 
     static int64_t timevalToNano(timeval const& t) {
         return t.tv_sec*1000000000LL + t.tv_usec*1000;
     }
 
-    ~SensorBase();
-
 public:
-    SensorBase(
-            const char* dev_name,
-            const char* data_name);
+            SensorBase(
+                    const char* dev_name,
+                    const char* data_name);
 
-    int getFd() const;
-    int setDelay(int64_t ns);
+    virtual ~SensorBase();
+
+    virtual int readEvents(sensors_event_t* data, int count) = 0;
+    virtual bool hasPendingEvents() const;
+    virtual int getFd() const;
+    virtual int setDelay(int64_t ns);
 };
 
 /*****************************************************************************/

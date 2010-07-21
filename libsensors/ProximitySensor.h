@@ -31,20 +31,21 @@
 struct input_event;
 
 class ProximitySensor : public SensorBase {
-    int mHasInitialValue;
     int mEnabled;
     InputEventCircularReader mInputReader;
     sensors_event_t mPendingEvent;
+    bool mHasPendingEvent;
 
     int setInitialState();
     float indexToValue(size_t index) const;
 
 public:
-    ProximitySensor();
-    ~ProximitySensor();
+            ProximitySensor();
+    virtual ~ProximitySensor();
+    virtual int readEvents(sensors_event_t* data, int count);
+    virtual bool hasPendingEvents() const;
 
     int enable(int enabled);
-    int readEvents(sensors_event_t* data, int count);
 };
 
 /*****************************************************************************/

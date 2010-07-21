@@ -51,10 +51,9 @@ public:
 
 private:
     uint32_t mEnabled;
-    InputEventCircularReader mInputReader;
     uint32_t mPendingMask;
+    InputEventCircularReader mInputReader;
     sensors_event_t mPendingEvents[numSensors];
-    int mLastEventIndex;
 
 };
 

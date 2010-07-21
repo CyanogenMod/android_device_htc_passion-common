@@ -60,9 +60,6 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define CM_DEVICE_NAME      "/dev/cm3602"
 #define LS_DEVICE_NAME      "/dev/lightsensor"
 
-
-// sensor IDs must be a power of two and
-// must match values in SensorManager.java
 #define EVENT_TYPE_ACCEL_X          ABS_X
 #define EVENT_TYPE_ACCEL_Y          ABS_Z
 #define EVENT_TYPE_ACCEL_Z          ABS_Y
@@ -97,6 +94,11 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define CONVERT_M_X                 (-CONVERT_M)
 #define CONVERT_M_Y                 (-CONVERT_M)
 #define CONVERT_M_Z                 (CONVERT_M)
+
+#define CONVERT_O                   (1.0f)
+#define CONVERT_O_Y                 (CONVERT_M)
+#define CONVERT_O_P                 (CONVERT_M)
+#define CONVERT_O_R                 (-CONVERT_M)
 
 #define SENSOR_STATE_MASK           (0x7FFF)
 

@@ -32,10 +32,9 @@
 
 AkmSensor::AkmSensor()
 : SensorBase(AKM_DEVICE_NAME, "compass"),
-  mEnabled(0),
-  mInputReader(32),
-  mPendingMask(0),
-  mLastEventIndex(0)
+      mEnabled(0),
+      mPendingMask(0),
+      mInputReader(32)
 {
     memset(mPendingEvents, 0, sizeof(mPendingEvents));
 
@@ -60,7 +59,7 @@ AkmSensor::AkmSensor()
 
     // read the actual value of all sensors if they're enabled already
     struct input_absinfo absinfo;
-    short flags;
+    short flags = 0;
     if (!ioctl(dev_fd, ECS_IOCTL_APP_GET_AFLAG, &flags)) {
         if (flags)  {
             mEnabled |= 1<<Accelerometer;
@@ -124,10 +123,10 @@ int AkmSensor::enable(int what, int en)
     if (uint32_t(what) >= numSensors)
         return -EINVAL;
 
-    int flags = en ? 1 : 0;
+    int newState  = en ? 1 : 0;
     int err = 0;
 
-    if ((uint32_t(flags)<<what) != (mEnabled & (1<<what))) {
+    if ((uint32_t(newState)<<what) != (mEnabled & (1<<what))) {
         int cmd;
         switch (what) {
             case Accelerometer: cmd = ECS_IOCTL_APP_SET_AFLAG;  break;
@@ -135,6 +134,7 @@ int AkmSensor::enable(int what, int en)
             case Orientation:   cmd = ECS_IOCTL_APP_SET_MFLAG;  break;
             case Temperature:   cmd = ECS_IOCTL_APP_SET_TFLAG;  break;
         }
+        short flags = newState;
         err = ioctl(dev_fd, cmd, &flags);
         err = err<0 ? -errno : 0;
         LOGE_IF(err, "ECS_IOCTL_APP_SET_XXX failed (%s)", strerror(-err));
@@ -186,9 +186,11 @@ int AkmSensor::readEvents(sensors_event_t* data, int count)
                     if (mPendingMask & (1<<j)) {
                         mPendingMask &= ~(1<<j);
                         mPendingEvents[j].timestamp = time;
-                        *data++ = mPendingEvents[j];
-                        count--;
-                        numEventReceived++;
+                        if (mEnabled & (1<<j)) {
+                            *data++ = mPendingEvents[j];
+                            count--;
+                            numEventReceived++;
+                        }
                     }
                 }
                 if (!mPendingMask) {
@@ -232,15 +234,15 @@ void AkmSensor::processEvent(int code, int value)
 
         case EVENT_TYPE_YAW:
             mPendingMask |= 1<<Orientation;
-            mPendingEvents[Orientation].orientation.azimuth = value;
+            mPendingEvents[Orientation].orientation.azimuth = value * CONVERT_O_Y;
             break;
         case EVENT_TYPE_PITCH:
             mPendingMask |= 1<<Orientation;
-            mPendingEvents[Orientation].orientation.pitch = value;
+            mPendingEvents[Orientation].orientation.pitch = value * CONVERT_O_P;
             break;
         case EVENT_TYPE_ROLL:
             mPendingMask |= 1<<Orientation;
-            mPendingEvents[Orientation].orientation.roll = -value;
+            mPendingEvents[Orientation].orientation.roll = value * CONVERT_O_R;
             break;
         case EVENT_TYPE_ORIENT_STATUS:
             mPendingMask |= 1<<Orientation;

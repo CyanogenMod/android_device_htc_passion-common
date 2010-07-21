@@ -22,7 +22,6 @@
 
 #include <poll.h>
 #include <pthread.h>
-#include <sys/select.h>
 
 #include <linux/input.h>
 
@@ -46,88 +45,116 @@ struct sensors_poll_context_t {
     int pollEvents(sensors_event_t* data, int count);
 
 private:
-    struct pollfd mPollFds[3];
-    LightSensor mLightSensor;
-    ProximitySensor mProximitySensor;
-    AkmSensor mAkmSensor;
+    enum {
+        light           = 0,
+        proximity       = 1,
+        akm             = 2,
+        numSensorDrivers,
+        numFds,
+    };
+
+    static const size_t wake = numFds - 1;
+    static const char WAKE_MESSAGE = 'W';
+    struct pollfd mPollFds[numFds];
+    int mWritePipeFd;
+    SensorBase* mSensors[numSensorDrivers];
+
+    int handleToDriver(int handle) const {
+        switch (handle) {
+            case ID_A:
+            case ID_M:
+            case ID_O:
+            case ID_T:
+                return akm;
+            case ID_P:
+                return proximity;
+            case ID_L:
+                return light;
+        }
+        return -EINVAL;
+    }
 };
 
 /*****************************************************************************/
 
 sensors_poll_context_t::sensors_poll_context_t()
 {
-    mPollFds[0].fd = mLightSensor.getFd();
-    mPollFds[0].events = POLLIN;
-    mPollFds[0].revents = 0;
+    mSensors[light] = new LightSensor();
+    mPollFds[light].fd = mSensors[light]->getFd();
+    mPollFds[light].events = POLLIN;
+    mPollFds[light].revents = 0;
 
-    mPollFds[1].fd = mProximitySensor.getFd();
-    mPollFds[1].events = POLLIN;
-    mPollFds[1].revents = 0;
+    mSensors[proximity] = new ProximitySensor();
+    mPollFds[proximity].fd = mSensors[proximity]->getFd();
+    mPollFds[proximity].events = POLLIN;
+    mPollFds[proximity].revents = 0;
 
-    mPollFds[2].fd = mAkmSensor.getFd();
-    mPollFds[2].events = POLLIN;
-    mPollFds[2].revents = 0;
+    mSensors[akm] = new AkmSensor();
+    mPollFds[akm].fd = mSensors[akm]->getFd();
+    mPollFds[akm].events = POLLIN;
+    mPollFds[akm].revents = 0;
+
+    int wakeFds[2];
+    int result = pipe(wakeFds);
+    LOGE_IF(result<0, "error creating wake pipe (%s)", strerror(errno));
+    fcntl(wakeFds[0], F_SETFL, O_NONBLOCK);
+    fcntl(wakeFds[1], F_SETFL, O_NONBLOCK);
+    mWritePipeFd = wakeFds[1];
+
+    mPollFds[wake].fd = wakeFds[0];
+    mPollFds[wake].events = POLLIN;
+    mPollFds[wake].revents = 0;
 }
 
 sensors_poll_context_t::~sensors_poll_context_t() {
+    for (int i=0 ; i<numSensorDrivers ; i++) {
+        delete mSensors[i];
+    }
+    close(mPollFds[wake].fd);
+    close(mWritePipeFd);
 }
 
 int sensors_poll_context_t::activate(int handle, int enabled) {
     int err = -EINVAL;
-    int idx = -1;
     switch (handle) {
         case ID_A:
-            err = mAkmSensor.enable(AkmSensor::Accelerometer, enabled);
-            idx = 2;
+            err = static_cast<AkmSensor*>(
+                    mSensors[akm])->enable(AkmSensor::Accelerometer, enabled);
             break;
         case ID_M:
-            err = mAkmSensor.enable(AkmSensor::MagneticField, enabled);
-            idx = 2;
+            err = static_cast<AkmSensor*>(
+                    mSensors[akm])->enable(AkmSensor::MagneticField, enabled);
             break;
         case ID_O:
-            err = mAkmSensor.enable(AkmSensor::Orientation, enabled);
-            idx = 2;
+            err = static_cast<AkmSensor*>(
+                    mSensors[akm])->enable(AkmSensor::Orientation, enabled);
             break;
         case ID_T:
-            err = mAkmSensor.enable(AkmSensor::Temperature, enabled);
-            idx = 2;
+            err = static_cast<AkmSensor*>(
+                    mSensors[akm])->enable(AkmSensor::Temperature, enabled);
             break;
         case ID_P:
-            err = mProximitySensor.enable(enabled);
-            idx = 1;
+            err = static_cast<ProximitySensor*>(
+                    mSensors[proximity])->enable(enabled);
             break;
         case ID_L:
-            err = mLightSensor.enable(enabled);
-            idx = 0;
+            err = static_cast<LightSensor*>(
+                    mSensors[light])->enable(enabled);
             break;
     }
-
-    if (!err && enabled && idx>=0) {
-        // pretend there is an event, so we return "something" asap.
-        mPollFds[idx].revents = POLLIN;
+    if (enabled && !err) {
+        const char wakeMessage(WAKE_MESSAGE);
+        int result = write(mWritePipeFd, &wakeMessage, 1);
+        LOGE_IF(result<0, "error sending wake message (%s)", strerror(errno));
     }
-
     return err;
 }
 
 int sensors_poll_context_t::setDelay(int handle, int64_t ns) {
-    switch (handle) {
-        case ID_A:
-        case ID_M:
-        case ID_O:
-        case ID_T:
-            mAkmSensor.setDelay(ns);
-            break;
-        case ID_P:
-            mProximitySensor.setDelay(ns);
-            break;
-        case ID_L:
-            mLightSensor.setDelay(ns);
-            break;
-        default:
-            return -EINVAL;
-    }
-    return 0;
+
+    int index = handleToDriver(handle);
+    if (index < 0) return index;
+    return mSensors[index]->setDelay(ns);
 }
 
 int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)
@@ -137,17 +164,10 @@ int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)
 
     do {
         // see if we have some leftover from the last poll()
-        for (int i=0 ; count && i<3 ; i++) {
-            if (mPollFds[i].revents & POLLIN) {
-                int nb = 0;
-                if (i == 0) {
-                    nb = mLightSensor.readEvents(data, count);
-                } else if (i == 1) {
-                    nb = mProximitySensor.readEvents(data, count);
-                } else if (i == 2) {
-                    nb = mAkmSensor.readEvents(data, count);
-                }
-
+        for (int i=0 ; count && i<numSensorDrivers ; i++) {
+            SensorBase* const sensor(mSensors[i]);
+            if ((mPollFds[i].revents & POLLIN) || (sensor->hasPendingEvents())) {
+                int nb = sensor->readEvents(data, count);
                 if (nb < count) {
                     // no more data for this sensor
                     mPollFds[i].revents = 0;
@@ -160,12 +180,19 @@ int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)
 
         if (count) {
             // we still have some room, so try to see if we can get
-            // some events immediately or just wait we we don't have
+            // some events immediately or just wait if we don't have
             // anything to return
-            n = poll(mPollFds, 3, nbEvents ? 0 : -1);
+            n = poll(mPollFds, numFds, nbEvents ? 0 : -1);
             if (n<0) {
                 LOGE("poll() failed (%s)", strerror(errno));
                 return -errno;
+            }
+            if (mPollFds[wake].revents & POLLIN) {
+                char msg;
+                int result = read(mPollFds[wake].fd, &msg, 1);
+                LOGE_IF(result<0, "error reading from wake pipe (%s)", strerror(errno));
+                LOGE_IF(msg != WAKE_MESSAGE, "unknown message on wake queue (0x%02x)", int(msg));
+                mPollFds[wake].revents = 0;
             }
         }
         // if we have events and space, go read them
