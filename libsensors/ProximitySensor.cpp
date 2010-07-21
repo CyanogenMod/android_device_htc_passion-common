@@ -32,21 +32,18 @@
 
 ProximitySensor::ProximitySensor()
     : SensorBase(CM_DEVICE_NAME, "proximity"),
-      mHasInitialValue(0),
       mEnabled(0),
-      mInputReader(4)
+      mInputReader(4),
+      mHasPendingEvent(false)
 {
     mPendingEvent.version = sizeof(sensors_event_t);
     mPendingEvent.sensor = ID_P;
     mPendingEvent.type = SENSOR_TYPE_PROXIMITY;
-    mPendingEvent.reserved0 = 0;
-    mPendingEvent.reserved1[0] = 0;
-    mPendingEvent.reserved1[1] = 0;
-    mPendingEvent.reserved1[2] = 0;
-    mPendingEvent.reserved1[3] = 0;
+    memset(mPendingEvent.data, 0, sizeof(mPendingEvent.data));
 
     int flags = 0;
     if (!ioctl(dev_fd, CAPELLA_CM3602_IOCTL_GET_ENABLED, &flags)) {
+        mEnabled = 1;
         if (flags) {
             setInitialState();
         }
@@ -59,21 +56,23 @@ ProximitySensor::~ProximitySensor() {
 int ProximitySensor::setInitialState() {
     struct input_absinfo absinfo;
     if (!ioctl(data_fd, EVIOCGABS(EVENT_TYPE_PROXIMITY), &absinfo)) {
+        // make sure to report an event immediately
+        mHasPendingEvent = true;
         mPendingEvent.distance = indexToValue(absinfo.value);
-        mHasInitialValue = 1;
     }
     return 0;
 }
 
 int ProximitySensor::enable(int en) {
-    int flags = en ? 1 : 0;
+    int newState = en ? 1 : 0;
     int err = 0;
-    if (flags != mEnabled) {
+    if (newState != mEnabled) {
+        int flags = newState;
         err = ioctl(dev_fd, CAPELLA_CM3602_IOCTL_ENABLE, &flags);
         err = err<0 ? -errno : 0;
         LOGE_IF(err, "CAPELLA_CM3602_IOCTL_ENABLE failed (%s)", strerror(-err));
         if (!err) {
-            mEnabled = en ? 1 : 0;
+            mEnabled = newState;
             if (en) {
                 setInitialState();
             }
@@ -82,19 +81,20 @@ int ProximitySensor::enable(int en) {
     return err;
 }
 
+bool ProximitySensor::hasPendingEvents() const {
+    return mHasPendingEvent;
+}
+
 int ProximitySensor::readEvents(sensors_event_t* data, int count)
 {
     if (count < 1)
         return -EINVAL;
 
-    if (mHasInitialValue) {
-        struct timespec t;
-        t.tv_sec = t.tv_nsec = 0;
-        clock_gettime(CLOCK_MONOTONIC, &t);
-        mHasInitialValue = 0;
-        mPendingEvent.timestamp = int64_t(t.tv_sec)*1000000000LL + t.tv_nsec;
+    if (mHasPendingEvent) {
+        mHasPendingEvent = false;
+        mPendingEvent.timestamp = getTimestamp();
         *data = mPendingEvent;
-        return 1;
+        return mEnabled ? 1 : 0;
     }
 
     ssize_t n = mInputReader.fill(data_fd);
@@ -112,9 +112,11 @@ int ProximitySensor::readEvents(sensors_event_t* data, int count)
             }
         } else if (type == EV_SYN) {
             mPendingEvent.timestamp = timevalToNano(event->time);
-            *data++ = mPendingEvent;
-            count--;
-            numEventReceived++;
+            if (mEnabled) {
+                *data++ = mPendingEvent;
+                count--;
+                numEventReceived++;
+            }
         }
         mInputReader.next();
     }

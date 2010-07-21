@@ -32,22 +32,19 @@
 
 LightSensor::LightSensor()
     : SensorBase(LS_DEVICE_NAME, "lightsensor-level"),
-      mHasInitialValue(0),
       mEnabled(0),
-      mInputReader(4)
+      mInputReader(4),
+      mHasPendingEvent(false)
 {
     mPendingEvent.version = sizeof(sensors_event_t);
     mPendingEvent.sensor = ID_L;
     mPendingEvent.type = SENSOR_TYPE_LIGHT;
-    mPendingEvent.reserved0 = 0;
-    mPendingEvent.reserved1[0] = 0;
-    mPendingEvent.reserved1[1] = 0;
-    mPendingEvent.reserved1[2] = 0;
-    mPendingEvent.reserved1[3] = 0;
+    memset(mPendingEvent.data, 0, sizeof(mPendingEvent.data));
 
     int flags = 0;
     if (!ioctl(dev_fd, LIGHTSENSOR_IOCTL_GET_ENABLED, &flags)) {
         if (flags) {
+            mEnabled = 1;
             setInitialState();
         }
     }
@@ -60,7 +57,7 @@ int LightSensor::setInitialState() {
     struct input_absinfo absinfo;
     if (!ioctl(data_fd, EVIOCGABS(EVENT_TYPE_LIGHT), &absinfo)) {
         mPendingEvent.light = indexToValue(absinfo.value);
-        mHasInitialValue = 1;
+        mHasPendingEvent = true;
     }
     return 0;
 }
@@ -82,23 +79,23 @@ int LightSensor::enable(int en) {
     return err;
 }
 
+bool LightSensor::hasPendingEvents() const {
+    return mHasPendingEvent;
+}
+
 int LightSensor::readEvents(sensors_event_t* data, int count)
 {
     if (count < 1)
         return -EINVAL;
 
-    if (mHasInitialValue) {
-        struct timespec t;
-        t.tv_sec = t.tv_nsec = 0;
-        clock_gettime(CLOCK_MONOTONIC, &t);
-        mHasInitialValue = 0;
-        mPendingEvent.timestamp = int64_t(t.tv_sec)*1000000000LL + t.tv_nsec;
+    if (mHasPendingEvent) {
+        mHasPendingEvent = false;
+        mPendingEvent.timestamp = getTimestamp();
         *data = mPendingEvent;
-        return 1;
+        return mEnabled ? 1 : 0;
     }
 
     ssize_t n = mInputReader.fill(data_fd);
-
     if (n < 0)
         return n;
 
@@ -116,9 +113,11 @@ int LightSensor::readEvents(sensors_event_t* data, int count)
             }
         } else if (type == EV_SYN) {
             mPendingEvent.timestamp = timevalToNano(event->time);
-            *data++ = mPendingEvent;
-            count--;
-            numEventReceived++;
+            if (mEnabled) {
+                *data++ = mPendingEvent;
+                count--;
+                numEventReceived++;
+            }
         }
         mInputReader.next();
     }
