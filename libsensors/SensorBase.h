@@ -52,7 +52,8 @@ public:
     virtual int readEvents(sensors_event_t* data, int count) = 0;
     virtual bool hasPendingEvents() const;
     virtual int getFd() const;
-    virtual int setDelay(int64_t ns);
+    virtual int setDelay(int32_t handle, int64_t ns);
+    virtual int enable(int32_t handle, int enabled) = 0;
 };
 
 /*****************************************************************************/

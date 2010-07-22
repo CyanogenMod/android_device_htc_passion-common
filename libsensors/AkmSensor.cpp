@@ -57,6 +57,9 @@ AkmSensor::AkmSensor()
     mPendingEvents[Temperature  ].sensor = ID_T;
     mPendingEvents[Temperature  ].type = SENSOR_TYPE_TEMPERATURE;
 
+    for (int i=0 ; i<numSensors ; i++)
+        mDelays[i] = 200000000; // 200 ms by default
+
     // read the actual value of all sensors if they're enabled already
     struct input_absinfo absinfo;
     short flags = 0;
@@ -118,8 +121,16 @@ AkmSensor::AkmSensor()
 AkmSensor::~AkmSensor() {
 }
 
-int AkmSensor::enable(int what, int en)
+int AkmSensor::enable(int32_t handle, int en)
 {
+    int what = -1;
+    switch (handle) {
+        case ID_A: what = Accelerometer; break;
+        case ID_M: what = MagneticField; break;
+        case ID_O: what = Orientation;   break;
+        case ID_T: what = Temperature;   break;
+    }
+
     if (uint32_t(what) >= numSensors)
         return -EINVAL;
 
@@ -141,25 +152,52 @@ int AkmSensor::enable(int what, int en)
         if (!err) {
             mEnabled &= ~(1<<what);
             mEnabled |= (uint32_t(flags)<<what);
+            update_delay();
         }
     }
     return err;
 }
 
-int AkmSensor::setDelay(int64_t ns)
+int AkmSensor::setDelay(int32_t handle, int64_t ns)
 {
+#ifdef ECS_IOCTL_APP_SET_DELAY
+    int what = -1;
+    switch (handle) {
+        case ID_A: what = Accelerometer; break;
+        case ID_M: what = MagneticField; break;
+        case ID_O: what = Orientation;   break;
+        case ID_T: what = Temperature;   break;
+    }
+
+    if (uint32_t(what) >= numSensors)
+        return -EINVAL;
+
     if (ns < 0)
         return -EINVAL;
 
-#ifdef ECS_IOCTL_APP_SET_DELAY
-    short delay = ns / 1000000;
-    if (!ioctl(dev_fd, ECS_IOCTL_APP_SET_DELAY, &delay)) {
-        return -errno;
-    }
-    return 0;
+    mDelays[what] = ns;
+    return update_delay();
 #else
     return -1;
 #endif
+}
+
+int AkmSensor::update_delay()
+{
+    if (mEnabled) {
+        uint64_t wanted = -1LLU;
+        for (int i=0 ; i<numSensors ; i++) {
+            if (mEnabled & (1<<i)) {
+                uint64_t ns = mDelays[i];
+                wanted = wanted < ns ? wanted : ns;
+            }
+        }
+        short delay = int64_t(wanted) / 1000000;
+        if (!ioctl(dev_fd, ECS_IOCTL_APP_SET_DELAY, &delay)) {
+            return -errno;
+        }
+    }
+    return 0;
 }
 
 int AkmSensor::readEvents(sensors_event_t* data, int count)

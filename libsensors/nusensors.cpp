@@ -115,33 +115,9 @@ sensors_poll_context_t::~sensors_poll_context_t() {
 }
 
 int sensors_poll_context_t::activate(int handle, int enabled) {
-    int err = -EINVAL;
-    switch (handle) {
-        case ID_A:
-            err = static_cast<AkmSensor*>(
-                    mSensors[akm])->enable(AkmSensor::Accelerometer, enabled);
-            break;
-        case ID_M:
-            err = static_cast<AkmSensor*>(
-                    mSensors[akm])->enable(AkmSensor::MagneticField, enabled);
-            break;
-        case ID_O:
-            err = static_cast<AkmSensor*>(
-                    mSensors[akm])->enable(AkmSensor::Orientation, enabled);
-            break;
-        case ID_T:
-            err = static_cast<AkmSensor*>(
-                    mSensors[akm])->enable(AkmSensor::Temperature, enabled);
-            break;
-        case ID_P:
-            err = static_cast<ProximitySensor*>(
-                    mSensors[proximity])->enable(enabled);
-            break;
-        case ID_L:
-            err = static_cast<LightSensor*>(
-                    mSensors[light])->enable(enabled);
-            break;
-    }
+    int index = handleToDriver(handle);
+    if (index < 0) return index;
+    int err =  mSensors[index]->enable(handle, enabled);
     if (enabled && !err) {
         const char wakeMessage(WAKE_MESSAGE);
         int result = write(mWritePipeFd, &wakeMessage, 1);
@@ -154,7 +130,7 @@ int sensors_poll_context_t::setDelay(int handle, int64_t ns) {
 
     int index = handleToDriver(handle);
     if (index < 0) return index;
-    return mSensors[index]->setDelay(ns);
+    return mSensors[index]->setDelay(handle, ns);
 }
 
 int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)

@@ -62,7 +62,7 @@ int LightSensor::setInitialState() {
     return 0;
 }
 
-int LightSensor::enable(int en) {
+int LightSensor::enable(int32_t, int en) {
     int flags = en ? 1 : 0;
     int err = 0;
     if (flags != mEnabled) {
