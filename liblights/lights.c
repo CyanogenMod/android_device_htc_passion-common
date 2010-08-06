@@ -51,7 +51,6 @@ struct led {
     struct led_prop blink;
     struct led_prop color;
     struct led_prop period;
-    struct led_prop num_colors;
 };
 
 enum {
@@ -149,6 +148,7 @@ void init_globals(void)
         init_prop(&leds[i].brightness);
         init_prop(&leds[i].blink);
         init_prop(&leds[i].mode);
+	init_prop(&leds[i].color);
         init_prop(&leds[i].period);
     }
     g_attention = malloc(sizeof(struct light_state_t));
