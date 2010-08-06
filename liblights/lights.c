@@ -251,8 +251,9 @@ set_trackball_light(struct light_state_t const* state)
             LOGE("set color failed rc = %d\n", rc);
         if (period) {
             rc = write_int(&leds[JOGBALL_LED].period, period);
-            if (rc != 0)
+            /*if (rc != 0) Pedlar: useless error message was spamming logs.
                LOGE("set period failed rc = %d\n", rc);
+	   */
         }
     }
     // If the value isn't changing, don't set it, because this
