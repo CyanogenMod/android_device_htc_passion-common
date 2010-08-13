@@ -63,6 +63,7 @@ AkmSensor::AkmSensor()
     // read the actual value of all sensors if they're enabled already
     struct input_absinfo absinfo;
     short flags = 0;
+
     if (!ioctl(dev_fd, ECS_IOCTL_APP_GET_AFLAG, &flags)) {
         if (flags)  {
             mEnabled |= 1<<Accelerometer;
@@ -114,6 +115,8 @@ AkmSensor::AkmSensor()
             if (!ioctl(data_fd, EVIOCGABS(EVENT_TYPE_TEMPERATURE), &absinfo)) {
                 mPendingEvents[Orientation].temperature = absinfo.value;
             }
+            // disable temperature sensor, since it is not reported
+            ioctl(dev_fd, ECS_IOCTL_APP_SET_TFLAG, &flags);
         }
     }
 }
@@ -155,6 +158,18 @@ int AkmSensor::enable(int32_t handle, int en)
             update_delay();
         }
     }
+
+
+//    short flags = 0;
+//    ioctl(dev_fd, ECS_IOCTL_APP_GET_AFLAG, &flags);
+//    LOGD("accelerometer %sabled", flags?"en":"dis");
+//    ioctl(dev_fd, ECS_IOCTL_APP_GET_MVFLAG, &flags);
+//    LOGD("magneticfield %sabled", flags?"en":"dis");
+//    ioctl(dev_fd, ECS_IOCTL_APP_GET_MFLAG, &flags);
+//    LOGD("orientation %sabled", flags?"en":"dis");
+//    ioctl(dev_fd, ECS_IOCTL_APP_GET_TFLAG, &flags);
+//    LOGD("temperature %sabled", flags?"en":"dis");
+
     return err;
 }
 
