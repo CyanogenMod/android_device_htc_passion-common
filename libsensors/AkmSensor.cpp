@@ -64,6 +64,8 @@ AkmSensor::AkmSensor()
     struct input_absinfo absinfo;
     short flags = 0;
 
+    open_device();
+
     if (!ioctl(dev_fd, ECS_IOCTL_APP_GET_AFLAG, &flags)) {
         if (flags)  {
             mEnabled |= 1<<Accelerometer;
@@ -119,6 +121,10 @@ AkmSensor::AkmSensor()
             ioctl(dev_fd, ECS_IOCTL_APP_SET_TFLAG, &flags);
         }
     }
+
+    if (!mEnabled) {
+        close_device();
+    }
 }
 
 AkmSensor::~AkmSensor() {
@@ -141,6 +147,9 @@ int AkmSensor::enable(int32_t handle, int en)
     int err = 0;
 
     if ((uint32_t(newState)<<what) != (mEnabled & (1<<what))) {
+        if (!mEnabled) {
+            open_device();
+        }
         int cmd;
         switch (what) {
             case Accelerometer: cmd = ECS_IOCTL_APP_SET_AFLAG;  break;
@@ -157,19 +166,10 @@ int AkmSensor::enable(int32_t handle, int en)
             mEnabled |= (uint32_t(flags)<<what);
             update_delay();
         }
+        if (!mEnabled) {
+            close_device();
+        }
     }
-
-
-//    short flags = 0;
-//    ioctl(dev_fd, ECS_IOCTL_APP_GET_AFLAG, &flags);
-//    LOGD("accelerometer %sabled", flags?"en":"dis");
-//    ioctl(dev_fd, ECS_IOCTL_APP_GET_MVFLAG, &flags);
-//    LOGD("magneticfield %sabled", flags?"en":"dis");
-//    ioctl(dev_fd, ECS_IOCTL_APP_GET_MFLAG, &flags);
-//    LOGD("orientation %sabled", flags?"en":"dis");
-//    ioctl(dev_fd, ECS_IOCTL_APP_GET_TFLAG, &flags);
-//    LOGD("temperature %sabled", flags?"en":"dis");
-
     return err;
 }
 

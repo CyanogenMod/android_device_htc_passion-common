@@ -42,6 +42,9 @@ protected:
         return t.tv_sec*1000000000LL + t.tv_usec*1000;
     }
 
+    int open_device();
+    int close_device();
+
 public:
             SensorBase(
                     const char* dev_name,

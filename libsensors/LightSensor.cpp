@@ -41,12 +41,18 @@ LightSensor::LightSensor()
     mPendingEvent.type = SENSOR_TYPE_LIGHT;
     memset(mPendingEvent.data, 0, sizeof(mPendingEvent.data));
 
+     open_device();
+
     int flags = 0;
     if (!ioctl(dev_fd, LIGHTSENSOR_IOCTL_GET_ENABLED, &flags)) {
         if (flags) {
             mEnabled = 1;
             setInitialState();
         }
+    }
+
+    if (!mEnabled) {
+        close_device();
     }
 }
 
@@ -66,6 +72,9 @@ int LightSensor::enable(int32_t, int en) {
     int flags = en ? 1 : 0;
     int err = 0;
     if (flags != mEnabled) {
+        if (!mEnabled) {
+            open_device();
+        }
         err = ioctl(dev_fd, LIGHTSENSOR_IOCTL_ENABLE, &flags);
         err = err<0 ? -errno : 0;
         LOGE_IF(err, "LIGHTSENSOR_IOCTL_ENABLE failed (%s)", strerror(-err));
@@ -74,6 +83,9 @@ int LightSensor::enable(int32_t, int en) {
             if (en) {
                 setInitialState();
             }
+        }
+        if (!mEnabled) {
+            close_device();
         }
     }
     return err;

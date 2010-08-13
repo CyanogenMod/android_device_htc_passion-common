@@ -41,12 +41,17 @@ ProximitySensor::ProximitySensor()
     mPendingEvent.type = SENSOR_TYPE_PROXIMITY;
     memset(mPendingEvent.data, 0, sizeof(mPendingEvent.data));
 
+    open_device();
+
     int flags = 0;
     if (!ioctl(dev_fd, CAPELLA_CM3602_IOCTL_GET_ENABLED, &flags)) {
         mEnabled = 1;
         if (flags) {
             setInitialState();
         }
+    }
+    if (!mEnabled) {
+        close_device();
     }
 }
 
@@ -67,6 +72,9 @@ int ProximitySensor::enable(int32_t, int en) {
     int newState = en ? 1 : 0;
     int err = 0;
     if (newState != mEnabled) {
+        if (!mEnabled) {
+            open_device();
+        }
         int flags = newState;
         err = ioctl(dev_fd, CAPELLA_CM3602_IOCTL_ENABLE, &flags);
         err = err<0 ? -errno : 0;
@@ -76,6 +84,9 @@ int ProximitySensor::enable(int32_t, int en) {
             if (en) {
                 setInitialState();
             }
+        }
+        if (!mEnabled) {
+            close_device();
         }
     }
     return err;
