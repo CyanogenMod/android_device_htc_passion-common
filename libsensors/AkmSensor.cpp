@@ -118,6 +118,7 @@ AkmSensor::AkmSensor()
                 mPendingEvents[Orientation].temperature = absinfo.value;
             }
             // disable temperature sensor, since it is not reported
+            flags = 0;
             ioctl(dev_fd, ECS_IOCTL_APP_SET_TFLAG, &flags);
         }
     }
@@ -208,7 +209,7 @@ int AkmSensor::update_delay()
             }
         }
         short delay = int64_t(wanted) / 1000000;
-        if (!ioctl(dev_fd, ECS_IOCTL_APP_SET_DELAY, &delay)) {
+        if (ioctl(dev_fd, ECS_IOCTL_APP_SET_DELAY, &delay)) {
             return -errno;
         }
     }
