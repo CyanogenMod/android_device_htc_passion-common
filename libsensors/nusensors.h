@@ -40,9 +40,8 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define ID_A  (0)
 #define ID_M  (1)
 #define ID_O  (2)
-#define ID_T  (3)
-#define ID_P  (4)
-#define ID_L  (5)
+#define ID_P  (3)
+#define ID_L  (4)
 
 /*****************************************************************************/
 

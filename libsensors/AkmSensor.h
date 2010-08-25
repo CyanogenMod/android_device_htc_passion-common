@@ -40,7 +40,6 @@ public:
         Accelerometer   = 0,
         MagneticField   = 1,
         Orientation     = 2,
-        Temperature     = 3,
         numSensors
     };
 

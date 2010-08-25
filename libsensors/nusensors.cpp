@@ -64,7 +64,6 @@ private:
             case ID_A:
             case ID_M:
             case ID_O:
-            case ID_T:
                 return akm;
             case ID_P:
                 return proximity;
