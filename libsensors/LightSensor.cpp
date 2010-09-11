@@ -147,8 +147,8 @@ float LightSensor::indexToValue(size_t index) const
             640.0, 1280.0, 2600.0, 10240.0
     };
 
-    const size_t arraySize = sizeof(luxValues)/sizeof(*luxValues);
-    if (index >= arraySize)
-        index = arraySize;
+    const size_t maxIndex = sizeof(luxValues)/sizeof(*luxValues) - 1;
+    if (index > maxIndex)
+        index = maxIndex;
     return luxValues[index];
 }
