@@ -95,9 +95,9 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define CONVERT_M_Z                 (CONVERT_M)
 
 #define CONVERT_O                   (1.0f)
-#define CONVERT_O_Y                 (CONVERT_M)
-#define CONVERT_O_P                 (CONVERT_M)
-#define CONVERT_O_R                 (-CONVERT_M)
+#define CONVERT_O_Y                 (CONVERT_O)
+#define CONVERT_O_P                 (CONVERT_O)
+#define CONVERT_O_R                 (-CONVERT_O)
 
 #define SENSOR_STATE_MASK           (0x7FFF)
 
