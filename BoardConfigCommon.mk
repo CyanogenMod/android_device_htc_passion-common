@@ -40,7 +40,7 @@ WIFI_DRIVER_MODULE_NAME     := "bcm4329"
 
 BOARD_USES_GENERIC_AUDIO := false
 
-BOARD_KERNEL_CMDLINE := no_console_suspend=1 msmsdcc_sdioirq=1 wire.search_count=5
+BOARD_KERNEL_CMDLINE := no_console_suspend=1 wire.search_count=5
 BOARD_KERNEL_BASE := 0x20000000
 
 BOARD_HAVE_BLUETOOTH := true
