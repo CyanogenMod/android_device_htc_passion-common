@@ -67,6 +67,11 @@ BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x08400000   # limited so we enforce room to
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 0x0c440000
 BOARD_FLASH_BLOCK_SIZE := 131072
 
+# Set the system image size limit to the full physical space available for eng build
+ifeq (eng,$(TARGET_BUILD_VARIANT))
+BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x09000000
+endif
+
 TARGET_RECOVERY_UI_LIB := librecovery_ui_passion librecovery_ui_htc
 
 TARGET_RECOVERY_UPDATER_LIBS += librecovery_updater_htc
