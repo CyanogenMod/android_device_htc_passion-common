@@ -54,6 +54,9 @@ BOARD_EGL_CFG := device/htc/passion-common/egl.cfg
 
 BOARD_USE_FROYO_LIBCAMERA := true
 
+# Use RGB565 surfaces until userspace drivers are upgraded
+BOARD_NO_RGBX_8888 := true
+
 # # cat /proc/mtd
 # dev:    size   erasesize  name
 # mtd0: 000e0000 00020000 "misc"
