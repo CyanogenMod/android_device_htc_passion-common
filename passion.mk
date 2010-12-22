@@ -40,7 +40,9 @@ PRODUCT_PACKAGES := \
     librs_jni \
     gralloc.qsd8k \
     copybit.qsd8k \
-    gps.mahimahi
+    gps.mahimahi \
+    libOmxCore \
+    libOmxVidEnc
 
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
