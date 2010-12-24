@@ -79,10 +79,6 @@ ifeq (eng,$(TARGET_BUILD_VARIANT))
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x09000000
 endif
 
-TARGET_RECOVERY_UI_LIB := librecovery_ui_passion librecovery_ui_htc
-
-TARGET_RECOVERY_UPDATER_LIBS += librecovery_updater_htc
-
 TARGET_RELEASETOOLS_EXTENSIONS := device/htc/common
 
 # to enable the GPS HAL
