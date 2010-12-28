@@ -71,6 +71,9 @@ PRODUCT_COPY_FILES += \
 
 $(call inherit-product-if-exists, vendor/htc/passion-common/passion-vendor.mk)
 
+# Broadcom FM radio
+$(call inherit-product, device/htc/common/fm_radio.mk)
+
 # media profiles and capabilities spec
 $(call inherit-product, device/htc/passion-common/media_a1026.mk)
 
