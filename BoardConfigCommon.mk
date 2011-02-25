@@ -55,8 +55,6 @@ BOARD_VENDOR_USE_AKMD := akm8973
 
 BOARD_EGL_CFG := device/htc/passion-common/egl.cfg
 
-BOARD_USE_FROYO_LIBCAMERA := true
-
 BOARD_USES_QCOM_LIBS := true
 BOARD_USES_QCOM_LIBRPC := true
 BOARD_USES_QCOM_GPS := true
