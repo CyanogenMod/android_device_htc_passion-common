@@ -43,7 +43,7 @@ PRODUCT_PACKAGES := \
     copybit.qsd8k \
     gps.mahimahi \
     libOmxCore \
-    libOmxVidEnc
+    libOmxVidEnc \
     com.android.future.usb.accessory
 
 # we have enough storage space to hold precise GC data
