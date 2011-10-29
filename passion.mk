@@ -49,9 +49,6 @@ PRODUCT_PACKAGES := \
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
-# Passion uses high-density artwork where available
-PRODUCT_LOCALES := hdpi
-
 PRODUCT_COPY_FILES += \
     device/htc/passion-common/mahimahi-keypad.kl:system/usr/keylayout/mahimahi-keypad.kl \
     device/htc/passion-common/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl \
